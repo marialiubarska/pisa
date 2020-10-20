@@ -347,6 +347,7 @@ class Param:
                 '%s: `rval`=%.15e, but cannot be outside [0, 1]'
                 % (self.name, rval)
             )
+        rval = np.min([1., rval])  # make exactly 1. if rounding error occurred
         srange0 = srange[0].m
         srange1 = srange[1].m
         self._value = (srange0 + (srange1 - srange0)*rval) * self._units
