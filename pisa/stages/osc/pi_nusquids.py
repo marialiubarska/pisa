@@ -263,6 +263,7 @@ class pi_nusquids(PiStage):
             expected_params.extend([
                 "theta14",
                 "theta24",
+                "theta34",
                 "deltam41",
                 "deltacp14",
                 "deltacp24",
@@ -351,6 +352,7 @@ class pi_nusquids(PiStage):
         
         nus_layer.Set_MixingAngle(0, 3, self.params.theta14.value.m_as("rad"))
         nus_layer.Set_MixingAngle(1, 3, self.params.theta24.value.m_as("rad"))
+        nus_layer.Set_MixingAngle(2, 3, self.params.theta34.value.m_as("rad"))
         nus_layer.Set_SquareMassDifference(3, self.params.deltam41.value.m_as("eV**2"))
         nus_layer.Set_CPPhase(0, 3, self.params.deltacp14.value.m_as("rad"))
         nus_layer.Set_CPPhase(1, 3, self.params.deltacp24.value.m_as("rad"))
