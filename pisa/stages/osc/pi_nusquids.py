@@ -393,8 +393,14 @@ class pi_nusquids(PiStage):
                         "The outer edges of the node_specs must encompass "
                         "the entire range of calc_specs to avoid extrapolation"
                     )
-                    assert np.all(container[var].get(WHERE) <= upper_bound), err_msg
-                    assert np.all(container[var].get(WHERE) >= lower_bound), err_msg
+                    if np.any(container[var].get(WHERE) > upper_bound):
+                        maxval = np.max(container[var].get(WHERE))
+                        raise ValueError(err_msg + f"\nmax input: {maxval}, upper "
+                            f"bound: {upper_bound}")
+                    if np.any(container[var].get(WHERE) < lower_bound):
+                        minval = np.max(container[var].get(WHERE))
+                        raise ValueError(err_msg + f"\nmin input: {minval}, lower "
+                            f"bound: {lower_bound}")
 
             # Layers in nuSQuIDS are special: We need all the individual distances and
             # densities for the nodes to solve the interaction picture states, but on
@@ -541,7 +547,7 @@ class pi_nusquids(PiStage):
         nus_layer.EvolveState()
         prob_nodes = nus_layer.EvalFlavorAtNodes(flav_out)
         return prob_nodes
-    
+
     def calc_interpolated_states(self, evolved_states, e_out, cosz_out):
         """
         Calculate interpolated states at the energies and zenith angles requested.
