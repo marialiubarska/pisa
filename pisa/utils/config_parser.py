@@ -751,6 +751,10 @@ def parse_pipeline_config(config):
 
                 param_selector.update(param, selector=infodict['selector'])
 
+            # If it is a binning defined in the "binning" section, use the parsed value
+            elif value in binning_dict.keys():
+                service_kwargs[fullname] = binning_dict[value]
+
             # If it's not a param spec but contains 'binning', assume it's a
             # binning spec for CAKE stages
             elif 'binning' in fullname:
