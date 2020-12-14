@@ -75,7 +75,7 @@ class nutau_xsec(Stage):
                 func[~np.isfinite(func)] = -np.inf
                 container["nutau_xsec_func"] = func
 
-        self.data.data_specs = self.output_specs
+        self.data.representation = self.apply_mode
         for container in self.data:
             if container.name in ["nutau_cc", "nutaubar_cc"]:
                 container["nutau_xsec_scale"] = np.empty(container.size, dtype=FTYPE)

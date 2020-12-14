@@ -251,9 +251,9 @@ class mceq_barr_red(Stage):
             # Grab containers here once to save time
             # TODO make spline generation script store splines directly in
             # terms of energy, not ln(energy)
-            true_log_energy = np.log(container["true_energy"].get("host"))
-            true_abs_coszen = np.abs(container["true_coszen"].get("host"))
-            gradients = container["gradients"].get("host")
+            true_log_energy = np.log(container["true_energy"])
+            true_abs_coszen = np.abs(container["true_coszen"])
+            gradients = container["gradients"]
             nubar = container["nubar"]
 
             #
@@ -295,7 +295,7 @@ class mceq_barr_red(Stage):
                 ## gradients[:, 2, gradient_param_idx].fill(0.0)
 
             # Tell the smart arrays we've changed the flux gradient values on the host
-            container.mark_changed("gradients").mark_changed("host")
+            container.mark_changed("gradients")
 
         # don't forget to un-link everything again
         self.data.unlink_containers()
@@ -406,11 +406,11 @@ class mceq_barr_red(Stage):
             # Check for negative results from spline
             # TODO - add more spline error/misusage handling
             # e.g. if events have energy outside spline range throw ERROR
-            negative_mask = container["nu_flux"].get("host") < 0
+            negative_mask = container["nu_flux"] < 0
             if np.any(negative_mask):
-                container["nu_flux"].get("host")[negative_mask] = 0.0
+                container["nu_flux"][negative_mask] = 0.0
 
-            container.mark_changed("nu_flux").mark_changed("host")
+            container.mark_changed("nu_flux")
 
         # don't forget to un-link everything again
         self.data.unlink_containers()
