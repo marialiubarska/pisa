@@ -195,7 +195,7 @@ class VirtualContainer(object):
 
     def __setitem__(self, key, value):
         for container in self:
-            container[key] = np.copy(value)
+            container[key] = value
 
     def set_aux_data(self, key, val):
         for container in self:
@@ -545,7 +545,7 @@ class Container():
         src_representation = self.find_valid_representation(key)
         if src_representation is None:
             raise Exception(f'No valid representation for {key} in container')
-        logging.info(f'Auo-translating variable `{key}` from {src_representation}')
+        # logging.debug(f'Auto-translating variable `{key}` from {src_representation}')
         self.translate(key, src_representation)
         
                 
