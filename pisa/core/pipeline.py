@@ -328,6 +328,7 @@ class Pipeline(object):
     def run(self):
         """Run the pipeline to compute"""
         for stage in self.stages:
+            logging.debug(f"Working on stage {stage.stage_name}.{stage.service_name}")
             stage.run()
 
     def setup(self):
