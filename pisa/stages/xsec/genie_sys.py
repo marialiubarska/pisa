@@ -70,7 +70,6 @@ class genie_sys(Stage): # pylint: disable=invalid-name
 
 
 
-    @line_profile
     def apply_function(self):
         genie_ma_qe = self.params.Genie_Ma_QE.m_as('dimensionless')
         genie_ma_res = self.params.Genie_Ma_RES.m_as('dimensionless')
