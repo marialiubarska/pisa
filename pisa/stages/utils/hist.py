@@ -28,7 +28,8 @@ class hist(Stage):  # pylint: disable=invalid-name
             **std_kwargs,
         )
 
-
+        assert self.calc_mode is not None
+        assert self.apply_mode is not None
 
 
     def setup_function(self):
