@@ -10,7 +10,7 @@ from pisa.core.stage import Stage
 from pisa.utils.profiler import profile
 from pisa.utils.log import logging
 from pisa.utils import vectorizer
-from pisa.utils.numba_tools import WHERE
+from pisa.core.binning import MultiDimBinning
 
 
 class set_variance(Stage):  # pylint: disable=invalid-name
@@ -32,9 +32,9 @@ class set_variance(Stage):  # pylint: disable=invalid-name
             expected_params=(),
             **std_kwargs,
         )
-
-        assert self.calc_mode == "binned"
-        assert self.output_mode == "binned"
+        
+        assert isinstance(self.calc_mode, MultiDimBinning)
+        assert isinstance(self.apply_mode, MultiDimBinning)
 
         self.variance_scale = variance_scale
         self.variance_floor = variance_floor
@@ -52,9 +52,10 @@ class set_variance(Stage):  # pylint: disable=invalid-name
             for container in self.data:
                 self.total_mc[container.name] = container.size
                 logging.debug(f"{container.size} mc events in container {container.name}")
+        self.data.representation = self.calc_mode
         for container in self.data:
             container["manual_variance"] = np.empty((container.size), dtype=FTYPE)
-            if "errors" not in container.keys():
+            if "errors" not in container.keys:
                 container["errors"] = np.empty((container.size), dtype=FTYPE)
 
     def apply_function(self):

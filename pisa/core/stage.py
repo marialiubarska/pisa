@@ -325,9 +325,6 @@ class Stage():
         pass
 
     def compute(self):
-        
-        if len(self.params) == 0:
-            return
 
         # simplest caching algorithm: don't compute if params didn't change
         new_param_hash = self.params.values_hash
