@@ -18,7 +18,6 @@ from tabulate import tabulate
 import numpy as np
 
 from pisa import ureg
-from pisa.analysis.analysis import Analysis
 from pisa.core.map import MapSet
 from pisa.core.pipeline import Pipeline
 from pisa.core.param import ParamSet
