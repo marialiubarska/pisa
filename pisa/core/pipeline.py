@@ -22,7 +22,6 @@ import traceback
 import numpy as np
 
 from pisa import ureg
-from pisa.analysis.analysis import Analysis
 from pisa.core.events import Data
 from pisa.core.map import Map, MapSet
 from pisa.core.param import ParamSet
@@ -437,27 +436,6 @@ class Pipeline(object):
 
     def __hash__(self):
         return self.hash
-
-    def fit(self, data, metric, minimizer_settings, 
-            param_selections=None, reset_free=True, 
-            check_octant=True, fit_octants_separately=True,
-            check_ordering=False, other_metrics=None,
-            blind=False, pprint=True, external_priors_penalty=None):
-
-        ana = Analysis()
-        result = ana.fit_hypo(data, self, 
-            hypo_param_selections=param_selections,
-            metric=metric,
-            minimizer_settings=minimizer_settings,
-            reset_free=reset_free, 
-            check_octant=check_octant,
-            fit_octants_separately=fit_octants_separately,
-            check_ordering=check_ordering,
-            other_metrics=other_metrics,
-            blind=blind,
-            pprint=pprint,
-            external_priors_penalty=external_priors_penalty)
-        return result
 
 
 def test_Pipeline():
