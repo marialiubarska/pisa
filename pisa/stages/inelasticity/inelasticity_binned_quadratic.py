@@ -2,11 +2,8 @@
 A stage to change inelasticity distribution in multiple [energy] bins.
 Intended for the inelasticity measurement.
 
-This particular stage implements simple inelasticity reweighting sheme
-previusely used in high-energy inelasticity measurement.
-Note that this parameterization is not really phenomenologically 
-motivated at energies below ~1TeV (because of relatively big 
-contribution from events with high Bjorken x)!
+New inelasticity distribution reweighting method. Now treating nu and 
+nubar separately. 
 
 Maria Liubarska
 """
@@ -23,7 +20,7 @@ from pisa.utils.log import logging
 from pisa import FTYPE, TARGET
 from pisa.utils.numba_tools import WHERE
 
-class inelasticity_binned_simple(Stage):
+class inelasticity_binned_quadratic(Stage):
     """
     blah
 
@@ -59,14 +56,18 @@ class inelasticity_binned_simple(Stage):
         # modify expected_params to have as many sets of parameters 
         # as there are energy bins
         # there is at least one bin:
-        expected_params = ('mean_y_bin1', 'lambda_bin1')
+        expected_params = ('nu_mean_y_bin1', 'nu_lambda_bin1', 
+                           'nubar_mean_y_bin1', 'nubar_lambda_bin1' 
+                          )
         # if there are more, add them:
         if self.num_bins > 1:
             for ibin in range(2,self.num_bins+1):
-                expected_params += ('mean_y_bin%d' % ibin, 'lambda_bin%d' % ibin) 
+                expected_params += ('nu_mean_y_bin%d' % ibin, 'nu_lambda_bin%d' % ibin,
+                                    'nubar_mean_y_bin%d' % ibin, 'nubar_lambda_bin%d' % ibin,
+                                   ) 
                 
         # init base class
-        super(inelasticity_binned_simple, self).__init__(
+        super(inelasticity_binned_quadratic, self).__init__(
             expected_params=expected_params,
             **std_kwargs,
         )
@@ -102,7 +103,7 @@ class inelasticity_binned_simple(Stage):
                 elif container.name in ['nuebar_cc', 'numubar_cc', 'nutaubar_cc']:
                     init_y_spl = spl_nubarcc
                 else:
-                    raise ValueError('Incorrect container type "%s"' % container.name)
+                    raise ValueError('Incorrect container type in setup_function(): "%s"' % container.name)
                 
                 dis_mask = (container['dis'] > 0)
                 lg_true_energy_dis = np.log10(container["true_energy"][dis_mask])
@@ -116,21 +117,6 @@ class inelasticity_binned_simple(Stage):
                                                                                               true_y_dis[valid_mask])
                 container["initial_inelasticity_distr"][dis_mask][extrp_mask] = init_y_spl.ev(lgE_min,
                                                                                               true_y_dis[extrp_mask])
-                
-#                 lambda_initial = 1.06
-#                 mean_y_initial = 0.42
-#                 epsilon_initial = calc_epsilon_from_mean_y(mean_y_initial, lambda_initial)
-#                 norm_initial = calc_bin_norm(lambda_initial, epsilon_initial)
-#                 # apparently setting out to masked array doesn't work?
-#                 calc_output = np.ones(container["initial_inelasticity_distr"][dis_mask].size, dtype=FTYPE)
-#                 calc_new_inelasticity_distr(
-#                     container['bjorken_y'][dis_mask],
-#                     FTYPE(lambda_initial),
-#                     FTYPE(epsilon_initial),
-#                     FTYPE(norm_initial),
-#                     out=calc_output,
-#                 )
-#                 container["initial_inelasticity_distr"][dis_mask] = calc_output
         
     def compute_function(self):
         # (re)calculate corrections to inelasticity distribution in each bin
@@ -143,11 +129,19 @@ class inelasticity_binned_simple(Stage):
                     ibin_mask = (container["energy_bin"] == ibin+1.)
                     comp_mask = (ibin_mask * (container['dis'] > 0))
                     
-                    lambda_bin = getattr(self.params, 'lambda_bin%d' % (ibin+1)).value.m_as("dimensionless")
-                    mean_y_bin = getattr(self.params, 'mean_y_bin%d' % (ibin+1)).value.m_as("dimensionless")
+                    if container.name in ['nue_cc', 'numu_cc', 'nutau_cc']:
+                        lambda_bin = getattr(self.params, 'nu_lambda_bin%d' % (ibin+1)).value.m_as("dimensionless")
+                        mean_y_bin = getattr(self.params, 'nu_mean_y_bin%d' % (ibin+1)).value.m_as("dimensionless")
+                        c_bin = 0.06 # tmp hardcode
+                    elif container.name in ['nuebar_cc', 'numubar_cc', 'nutaubar_cc']:
+                        lambda_bin = getattr(self.params, 'nubar_lambda_bin%d' % (ibin+1)).value.m_as("dimensionless")
+                        mean_y_bin = getattr(self.params, 'nubar_mean_y_bin%d' % (ibin+1)).value.m_as("dimensionless")
+                        c_bin = 0.11 # tmp hardcode
+                    else:
+                        raise ValueError('Incorrect container type in compute_function(): "%s"' % container.name)
                     
-                    epsilon_bin = calc_epsilon_from_mean_y(mean_y_bin, lambda_bin)
-                    norm_bin = calc_bin_norm(lambda_bin, epsilon_bin)
+                    epsilon_bin = calc_epsilon_from_mean_y(mean_y_bin, lambda_bin, c_bin)
+                    norm_bin = calc_bin_norm(lambda_bin, epsilon_bin, c_bin)
                     
                     # apparently setting out to masked array doesn't work?
                     calc_output = np.ones(container["new_inelasticity_distr"][comp_mask].size, dtype=FTYPE)
@@ -155,6 +149,7 @@ class inelasticity_binned_simple(Stage):
                         container['bjorken_y'][comp_mask],
                         FTYPE(lambda_bin),
                         FTYPE(epsilon_bin),
+                        FTYPE(c_bin),
                         FTYPE(norm_bin),
                         out=calc_output,
                     )
@@ -172,11 +167,13 @@ class inelasticity_binned_simple(Stage):
                     out=container["weights"]
                 )
         
-def calc_epsilon_from_mean_y(mean_y, lam):
-    return -1. * ((lam+2.)*(lam+3.)/2.) * ((mean_y*(lam+1.)-lam)/(mean_y*(lam+3.)-lam))
+def calc_epsilon_from_mean_y(mean_y, lam, c):
+    return 4.*(mean_y - lam/3. - c/2.)
+#     return -1. * ((lam+2.)*(lam+3.)/2.) * ((mean_y*(lam+1.)-lam)/(mean_y*(lam+3.)-lam))
 
-def calc_bin_norm(lam, eps):
-    return (lam*(lam+1.)*(lam+2.)) / (2.*eps+(lam+1.)*(lam+2.))  
+def calc_bin_norm(lam, eps, c):
+    return 6. / (2.*eps+3.*lam+6.*c)
+#     return (lam*(lam+1.)*(lam+2.)) / (2.*eps+(lam+1.)*(lam+2.))  
     
 # vectorized functions
 # must be outside class
@@ -186,9 +183,9 @@ if FTYPE == np.float64:
 else:
     FX = 'f4'
     IX = 'i4'
-@guvectorize([f'({FX}[:], {FX}, {FX}, {FX}, {FX}[:])'], '(),(),(),()->()', target=TARGET)
-def calc_new_inelasticity_distr(y, lam, eps, norm, out):
-    out[0] = max(0, (norm * (1. + eps*(1 - y[0])**2) * y[0]**(lam-1)))
+@guvectorize([f'({FX}[:], {FX}, {FX}, {FX}, {FX}, {FX}[:])'], '(),(),(),(),()->()', target=TARGET)
+def calc_new_inelasticity_distr(y, lam, eps, c, norm, out):
+    out[0] = max(0, (norm * (eps*y[0]**2 + lam*y[0] + c)))
     
 @guvectorize([f'({FX}[:], {FX}[:], {FX}[:])'], '(),()->()', target=TARGET)
 def apply_inelasticity_correction(new_y_distr_w, old_y_distr_w, out):
