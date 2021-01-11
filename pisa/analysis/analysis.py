@@ -823,7 +823,7 @@ class Analysis(object):
             fit_info['params'] = ParamSet()
         else:
             fit_info['params'] = deepcopy(hypo_maker.params)
-        if isinstance(hypo_maker, pisa.core.Detectors):
+        if hypo_maker.__class__.__name__ == "Detectors":
             fit_info['detailed_metric_info'] = [self.get_detailed_metric_info(
                 data_dist=data_dist[i], hypo_asimov_dist=hypo_asimov_dist[i],
                 params=hypo_maker._distribution_makers[i].params, metric=metric[i],
@@ -890,7 +890,7 @@ class Analysis(object):
         hypo_maker.select_params(hypo_param_selections)
 
         # Check number of used metrics
-        if isinstance(hypo_maker, pisa.core.Detectors):
+        if hypo_maker.__class__.__name__ == "Detectors":
             if len(metric) == 1: # One metric for all detectors
                 metric = list(metric) * len(hypo_maker._distribution_makers)
             elif len(metric) != len(hypo_maker._distribution_makers):
@@ -900,7 +900,7 @@ class Analysis(object):
 
         # Assess the fit: whether the data came from the hypo_asimov_dist
         try:
-            if isinstance(hypo_maker, pisa.core.Detectors):
+            if hypo_maker.__class__.__name__ == "Detectors":
                 metric_val = 0
                 for i in range(len(hypo_maker._distribution_makers)):
                     data = data_dist[i].metric_total(expected_values=hypo_asimov_dist[i],metric=metric[i])
@@ -949,7 +949,7 @@ class Analysis(object):
             fit_info['params'] = ParamSet()
         else:
             fit_info['params'] = deepcopy(hypo_maker.params)
-        if isinstance(hypo_maker, pisa.core.Detectors):
+        if hypo_maker.__class__.__name__ == "Detectors":
             fit_info['detailed_metric_info'] = [self.get_detailed_metric_info(
                 data_dist=data_dist[i], hypo_asimov_dist=hypo_asimov_dist[i],
                 params=hypo_maker._distribution_makers[i].params, metric=metric[i],
@@ -1129,7 +1129,7 @@ class Analysis(object):
             raise
 
         # Check number of used metrics
-        if isinstance(hypo_maker, pisa.core.Detectors):
+        if hypo_maker.__class__.__name__ == "Detectors":
             if len(metric) == 1: # One metric for all detectors
                 metric = list(metric) * len(hypo_maker._distribution_makers)
             elif len(metric) != len(hypo_maker._distribution_makers):
@@ -1141,7 +1141,7 @@ class Analysis(object):
         # Assess the fit: whether the data came from the hypo_asimov_dist
         #
         try:
-            if isinstance(hypo_maker, pisa.core.Detectors):
+            if hypo_maker.__class__.__name__ == "Detectors":
                 metric_val = 0
                 for i in range(len(hypo_maker._distribution_makers)):
                     data = data_dist[i].metric_total(expected_values=hypo_asimov_dist[i],

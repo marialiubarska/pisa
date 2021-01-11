@@ -181,26 +181,26 @@ def conjugate_transpose_guf(A, out):
 
 def test_conjugate_transpose():
     """Unit tests of `conjugate_transpose` and `conjugate_transpose_guf`"""
-    A = numba.cuda.to_device(
-        (np.linspace(1, 12, 12) + 1j * np.linspace(21, 32, 12)).reshape(4, 3).astype(CX)
-    )
-    B = numba.cuda.to_device(np.ones((3, 4), dtype=CX))
+    A = (np.linspace(1, 12, 12) + 1j * np.linspace(21, 32, 12)).reshape(4, 3).astype(CX)
+    d_A = numba.cuda.to_device(A)
+    B = np.ones((3, 4), dtype=CX)
+    d_B = numba.cuda.to_device(B)
 
-    conjugate_transpose_guf(A.get(WHERE), B.get(WHERE))
-    B.mark_changed(WHERE)
+    conjugate_transpose_guf(d_A, d_B)
 
-    test = B.get()
-    ref = A.get().conj().T
+    test = d_B.copy_to_host()
+    ref = A.conj().T
     assert np.allclose(test, ref, **ALLCLOSE_KW), f"test:\n{test}\n!= ref:\n{ref}"
 
-    A = numba.cuda.to_device(np.linspace(1, 12, 12, dtype=FX).reshape(3, 4))
-    B = numba.cuda.to_device(np.ones((4, 3), dtype=FX))
+    A = np.linspace(1, 12, 12, dtype=FX).reshape(3, 4)
+    B = np.ones((4, 3), dtype=FX)
+    d_A = numba.cuda.to_device(A)
+    d_B = numba.cuda.to_device(B)
 
-    conjugate_transpose_guf(A.get(WHERE), B.get(WHERE))
-    B.mark_changed(WHERE)
+    conjugate_transpose_guf(d_A, d_B)
 
-    test = B.get()
-    ref = A.get().conj().T
+    test = d_B.copy_to_host()
+    ref = A.conj().T
     assert np.allclose(test, ref, **ALLCLOSE_KW), f"test:\n{test}\n!= ref:\n{ref}"
 
     logging.info("<< PASS : test_conjugate_transpose >>")
@@ -241,22 +241,20 @@ def test_conjugate():
     )
     B = numba.cuda.to_device(np.ones((4, 3), dtype=CX))
 
-    conjugate_guf(A.get(WHERE), B.get(WHERE))
-    B.mark_changed(WHERE)
+    conjugate_guf(A, B)
 
-    test = B.get()
-    ref = A.get().conj()
+    test = B.copy_to_host()
+    ref = A.copy_to_host().conj()
 
     assert np.allclose(test, ref, **ALLCLOSE_KW), f"test:\n{test}\n!= ref:\n{ref}"
 
     A = numba.cuda.to_device(np.linspace(1, 12, 12, dtype=FX).reshape(3, 4))
     B = numba.cuda.to_device(np.ones((3, 4), dtype=FX))
 
-    conjugate_guf(A.get(WHERE), B.get(WHERE))
-    B.mark_changed(WHERE)
+    conjugate_guf(A, B)
 
-    test = B.get()
-    ref = A.get().conj()
+    test = B.copy_to_host()
+    ref = A.copy_to_host().conj()
     assert np.allclose(test, ref, **ALLCLOSE_KW), f"test:\n{test}\n!= ref:\n{ref}"
 
     logging.info("<< PASS : test_conjugate >>")
@@ -295,11 +293,10 @@ def test_matrix_dot_matrix():
     B = numba.cuda.to_device(np.linspace(1, 12, 12, dtype=FTYPE).reshape(4, 3))
     C = numba.cuda.to_device(np.ones((3, 3), dtype=FTYPE))
 
-    matrix_dot_matrix_guf(A.get(WHERE), B.get(WHERE), C.get(WHERE))
-    C.mark_changed(WHERE)
+    matrix_dot_matrix_guf(A, B, C)
 
-    test = C.get()
-    ref = np.dot(A, B).astype(FTYPE)
+    test = C.copy_to_host()
+    ref = np.dot(A.copy_to_host(), B.copy_to_host()).astype(FTYPE)
     assert np.allclose(test, ref, **ALLCLOSE_KW), f"test:\n{test}\n!= ref:\n{ref}"
 
     logging.info("<< PASS : test_matrix_dot_matrix >>")
@@ -337,11 +334,10 @@ def test_matrix_dot_vector():
     v = numba.cuda.to_device(np.linspace(1, 3, 3, dtype=FTYPE))
     w = numba.cuda.to_device(np.ones(4, dtype=FTYPE))
 
-    matrix_dot_vector_guf(A.get(WHERE), v.get(WHERE), w.get(WHERE))
-    w.mark_changed(WHERE)
+    matrix_dot_vector_guf(A, v, w)
 
-    test = w.get()
-    ref = np.dot(A, v).astype(FTYPE)
+    test = w.copy_to_host()
+    ref = np.dot(A.copy_to_host(), v.copy_to_host()).astype(FTYPE)
     assert np.allclose(test, ref, **ALLCLOSE_KW), f"test:\n{test}\n!= ref:\n{ref}"
 
     logging.info("<< PASS : test_matrix_dot_vector >>")
@@ -374,10 +370,9 @@ def test_clear_matrix():
     """Unit tests of `clear_matrix` and `clear_matrix_guf`"""
     A = numba.cuda.to_device(np.ones((4, 3), dtype=FTYPE))
 
-    clear_matrix_guf(A.get(WHERE), A.get(WHERE))
-    A.mark_changed(WHERE)
+    clear_matrix_guf(A, A)
 
-    test = A.get()
+    test = A.copy_to_host()
     ref = np.zeros((4, 3), dtype=FTYPE)
     assert np.array_equal(test, ref), f"test:\n{test}\n!= ref:\n{ref}"
 
@@ -412,11 +407,10 @@ def test_copy_matrix():
     A = numba.cuda.to_device(np.ones((3, 3), dtype=FTYPE))
     B = numba.cuda.to_device(np.zeros((3, 3), dtype=FTYPE))
 
-    copy_matrix_guf(A.get(WHERE), B.get(WHERE))
-    B.mark_changed(WHERE)
+    copy_matrix_guf(A, B)
 
-    test = B.get()
-    ref = A.get()
+    test = B.copy_to_host()
+    ref = A.copy_to_host()
     assert np.array_equal(test, ref), f"test:\n{test}\n!= ref:\n{ref}"
 
     logging.info("<< PASS : test_copy_matrix >>")

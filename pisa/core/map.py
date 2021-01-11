@@ -856,6 +856,11 @@ class Map(object):
         return fig, ax, pcmesh, colorbar
 
     @_new_obj
+    def __deepcopy__(self, memo):
+        """ Hook for deepcopy to corrdctly handle hists """
+        return {}
+
+    @_new_obj
     def reorder_dimensions(self, order):
         """Rearrange the dimensions in the map. This affects both the binning
         and the contained histogram.
