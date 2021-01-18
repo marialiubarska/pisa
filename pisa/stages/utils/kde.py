@@ -61,6 +61,7 @@ class kde(Stage):
         binning = self.apply_mode
 
         for container in self.data:
+            self.data.representation = self.calc_mode
             sample = np.stack([container[n] for n in binning.names]).T
             weights = container['weights']
 

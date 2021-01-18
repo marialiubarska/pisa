@@ -11,7 +11,6 @@ import sys
 import warnings
 
 from numba import jit as numba_jit
-from numba import NumbaDeprecationWarning
 from numpy import (
     array, inf, nan,
     float32, float64,

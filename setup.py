@@ -227,6 +227,8 @@ def do_setup():
 
         'resources/events/*.hdf5',
         'resources/events/*.json*',
+        'resources/events/IceCube_3y_oscillations/*.csv',
+        'resources/events/IceCube_3y_oscillations/*.csv.bz2',
 
         'resources/flux/*.d',
         'resources/osc/*.hdf5',
@@ -266,7 +268,7 @@ def do_setup():
         description='Tools for analyzing and drawing statistical conclusions from experimental data',
         license='Apache 2.0',
         author='The IceCube Collaboration',
-        author_email='jll1062+pisa@phys.psu.edu',
+        author_email='analysis@icecube.wisc.edu',
         url='http://github.com/icecubeopensource/pisa',
         cmdclass=cmdclasses,
         python_requires='>=3.6', # f-strings, kwarg/dict ordering require Py>=3.6
