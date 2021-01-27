@@ -275,7 +275,7 @@ class OneDimBinning(object):
                 raise ValueError(
                     'Both `domain` and `bin_edges` are specified.'
                     )
-
+            
         # Type checking
         assert is_lin is None or isinstance(is_lin, bool), str(type(is_lin))
         assert is_log is None or isinstance(is_log, bool), str(type(is_log))
