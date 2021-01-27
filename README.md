@@ -31,7 +31,7 @@ Published in: Nucl.Instrum.Meth.A 977 (2020) 164332
 ## Installation
 
 ```shell
-git clone git@github.com:IceCubeOpenSource/pisa.git
+git clone git@github.com:icecube/pisa.git
 cd pisa
 pip install -e .
 ```
