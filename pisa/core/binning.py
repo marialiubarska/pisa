@@ -271,6 +271,10 @@ class OneDimBinning(object):
                 isinstance(bin_edges, Iterable)
                 or (isinstance(bin_edges, ureg.Quantity) and bin_edges.size > 1)
             )
+            if domain is not None:
+                raise ValueError(
+                    'Both `domain` and `bin_edges` are specified.'
+                    )
 
         # Type checking
         assert is_lin is None or isinstance(is_lin, bool), str(type(is_lin))
