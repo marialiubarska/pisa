@@ -23,7 +23,7 @@ from pisa.utils.log import logging
 from pisa import FTYPE, TARGET
 from pisa.utils.numba_tools import WHERE
 
-class inelasticity_binned_simple(Stage):
+class inelasticity_binned_simple_eps(Stage):
     """
     blah
 
@@ -35,8 +35,8 @@ class inelasticity_binned_simple(Stage):
     params : ParamSet or sequence with which to instantiate a ParamSet.
         Expected params .. ::
         
-            mean_y : quantity (dimensionless)
-                Mean inelasticity for a given energy
+            epsilon : quantity (dimensionless)
+                param
 
             lambda : quantity (dimensionless)
                 Another parameter (see 
@@ -60,7 +60,7 @@ class inelasticity_binned_simple(Stage):
         # as there are energy bins
         # there is at least one bin:
         expected_params = (
-                           'mean_y_bin1', 
+                           'epsilon_bin1', 
                            'lambda_bin1', 
                            'binnorm_bin1',
                           )
@@ -68,17 +68,17 @@ class inelasticity_binned_simple(Stage):
         if self.num_bins > 1:
             for ibin in range(2,self.num_bins+1):
                 if ibin<self.num_bins:
-                    expected_params += ('mean_y_bin%d' % ibin, 
+                    expected_params += ('epsilon_bin%d' % ibin, 
                                         'lambda_bin%d' % ibin,
                                         'binnorm_bin%d' % ibin
                                        ) 
                 else:
-                    expected_params += ('mean_y_bin%d' % ibin, 
+                    expected_params += ('epsilon_bin%d' % ibin, 
                                         'lambda_bin%d' % ibin,
                                        ) 
                 
         # init base class
-        super(inelasticity_binned_simple, self).__init__(
+        super(inelasticity_binned_simple_eps, self).__init__(
             expected_params=expected_params,
             **std_kwargs,
         )
@@ -147,19 +147,8 @@ class inelasticity_binned_simple(Stage):
                     comp_mask = (ibin_mask * (container['dis'] > 0))
                     
                     lambda_bin = getattr(self.params, 'lambda_bin%d' % (ibin+1)).value.m_as("dimensionless")
-                    mean_y_bin = getattr(self.params, 'mean_y_bin%d' % (ibin+1)).value.m_as("dimensionless")
                     
-                    epsilon_bin = calc_epsilon_from_mean_y(mean_y_bin, lambda_bin)
-                    #norm_bin = calc_bin_norm(lambda_bin, epsilon_bin)
-                    
-#                     exp_event_count = sum(container["weights"][comp_mask])
-#                     total_num_events += exp_event_count
-#                     if ibin < self.num_bins-1:
-#                         norm_bin = getattr(self.params, 'binnorm_bin%d' % (ibin+1)).value.m_as("dimensionless")
-#                         modif_num_events += norm_bin * exp_event_count
-#                     else:
-#                         # last bin
-#                         norm_bin = (total_num_events - modif_num_events) / exp_event_count
+                    epsilon_bin = getattr(self.params, 'epsilon_bin%d' % (ibin+1)).value.m_as("dimensionless")
                     
                     # apparently setting out to masked array doesn't work?
                     calc_output = np.ones(container["new_inelasticity_distr"][comp_mask].size, dtype=FTYPE)
@@ -202,12 +191,6 @@ class inelasticity_binned_simple(Stage):
                     
                 
         
-def calc_epsilon_from_mean_y(mean_y, lam):
-    return -1. * ((lam+2.)*(lam+3.)/2.) * ((mean_y*(lam+1.)-lam)/(mean_y*(lam+3.)-lam))
-
-def calc_bin_norm(lam, eps):
-    return (lam*(lam+1.)*(lam+2.)) / (2.*eps+(lam+1.)*(lam+2.))  
-    
 # vectorized functions
 # must be outside class
 if FTYPE == np.float64:
